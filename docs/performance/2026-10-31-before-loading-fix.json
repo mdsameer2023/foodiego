@@ -1,0 +1,56 @@
+{
+  "measuredAt": "2026-10-31T07:09:05.266Z",
+  "type": "Lab measurements; assistantOpenMs is not field INP. LCP/CLS are browser observations, not a Lighthouse or CrUX score.",
+  "results": [
+    {
+      "width": 375,
+      "lcpMs": 1276,
+      "cls": 0.01279846648199446,
+      "shifts": [
+        {
+          "value": 0.00029541939058171747,
+          "nodes": [
+            "#text",
+            "#text",
+            "location-button"
+          ]
+        },
+        {
+          "value": 0.012503047091412742,
+          "nodes": [
+            "DIV"
+          ]
+        }
+      ],
+      "domContentLoadedMs": 1257,
+      "transferBytes": 522643,
+      "assistantOpenMs": 577
+    },
+    {
+      "width": 1440,
+      "lcpMs": 1156,
+      "cls": 0.8087813586338531,
+      "shifts": [
+        {
+          "value": 0.000360306002274204,
+          "nodes": [
+            "header-search",
+            "location-button",
+            "#text",
+            "A"
+          ]
+        },
+        {
+          "value": 0.8084210526315789,
+          "nodes": [
+            "DIV",
+            "FOOTER"
+          ]
+        }
+      ],
+      "domContentLoadedMs": 1130,
+      "transferBytes": 782900,
+      "assistantOpenMs": 589
+    }
+  ]
+}

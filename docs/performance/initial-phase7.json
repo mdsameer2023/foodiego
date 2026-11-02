@@ -1,0 +1,22 @@
+{
+  "measuredAt": "2026-10-30T09:50:37.027Z",
+  "type": "Lab measurements; assistantOpenMs is not field INP. LCP/CLS are browser observations, not a Lighthouse or CrUX score.",
+  "results": [
+    {
+      "width": 375,
+      "lcpMs": 4808,
+      "cls": 0.03304378208679594,
+      "domContentLoadedMs": 1934.5,
+      "transferBytes": 484656,
+      "assistantOpenMs": 1524
+    },
+    {
+      "width": 1440,
+      "lcpMs": 640,
+      "cls": 0,
+      "domContentLoadedMs": 413.69999999925494,
+      "transferBytes": 25854,
+      "assistantOpenMs": 631
+    }
+  ]
+}

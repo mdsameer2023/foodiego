@@ -1,0 +1,22 @@
+{
+  "measuredAt": "2026-10-31T16:54:32.934Z",
+  "scope": "Local configuration presence only; no secret values or deployed configuration",
+  "backendPresence": {
+    "PORT": true,
+    "NODE_ENV": true,
+    "FRONTEND_URL": true,
+    "BACKEND_URL": true,
+    "MONGODB_URI": true,
+    "JWT_ACCESS_SECRET": true,
+    "JWT_REFRESH_SECRET": true
+  },
+  "jwtSecretsDistinct": true,
+  "geminiConfigured": true,
+  "razorpay": {
+    "configured": false,
+    "mode": "DISABLED",
+    "webhookConfigured": false
+  },
+  "emailMode": "console",
+  "frontendSecretVariableNames": []
+}

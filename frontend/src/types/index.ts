@@ -1,0 +1,52 @@
+export type Restaurant = {
+  id: string;
+  name: string;
+  cuisine: string;
+  image: string;
+  rating: number;
+  reviews: number;
+  minutes: number;
+  price: number;
+  offer: string;
+  veg: boolean;
+  area: string;
+  description?: string;
+  images?: string[];
+  hasVegetarianOptions?: boolean;
+  isOpen?: boolean;
+  isSample?: boolean;
+  city?: string;
+  address?: string;
+  openingHours?: string;
+};
+export type MenuItem = {
+  id: string;
+  demoId?: string;
+  restaurantId: string;
+  restaurantName?: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  veg: boolean;
+  category: string;
+  isPopular?: boolean;
+  customizationOptions?: Array<{name:string;required?:boolean;minSelections?:number;maxSelections?:number;options:Array<{name:string;price:number}>}>;
+};
+export type CartItem = MenuItem & {
+  quantity: number;
+  option: string;
+  extra: number;
+  key: string;
+  selections?: Array<{group:string;options:string[]}>;
+};
+export type DemoOrder = {
+  id: string;
+  items: CartItem[];
+  total: number;
+  address: string;
+  createdAt: string;
+  status: "PLACED" | "CANCELLED";
+  payment: string;
+  instructions: string;
+};

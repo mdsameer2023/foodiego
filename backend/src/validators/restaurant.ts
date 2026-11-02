@@ -1,0 +1,20 @@
+import { z } from 'zod';
+export const restaurantQuerySchema = z.object({
+  search:z.string().trim().max(80).optional(),
+  cuisine:z.string().trim().max(80).optional(),
+  city:z.string().trim().max(80).optional(),
+  vegetarian:z.enum(['true','false']).optional(),
+  pureVegetarian:z.enum(['true','false']).optional(),
+  offers:z.enum(['true','false']).optional(),
+  openNow:z.enum(['true','false']).optional(),
+  area:z.string().trim().max(80).optional(),
+  lat:z.coerce.number().min(-90).max(90).optional(),
+  lng:z.coerce.number().min(-180).max(180).optional(),
+  radiusKm:z.coerce.number().min(1).max(50).default(10),
+  priceMax:z.coerce.number().min(0).max(100000).optional(),
+  ratingMin:z.coerce.number().min(0).max(5).optional(),
+  deliveryMax:z.coerce.number().int().min(1).max(300).optional(),
+  sort:z.enum(['recommended','rating','price','priceDesc','time','reviews','name']).default('recommended'),
+  page:z.coerce.number().int().min(1).default(1),
+  limit:z.coerce.number().int().min(1).max(30).default(12),
+}).strict();

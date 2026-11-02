@@ -1,0 +1,31 @@
+{
+  "measuredAt": "2026-10-31T09:57:45.661306+00:00",
+  "scope": "Local schema and invariant validation only; no hosting deployment or remote CI execution",
+  "results": [
+    {
+      "file": ".github/workflows/ci.yml",
+      "status": "PASS",
+      "schema": "https://json.schemastore.org/github-workflow.json",
+      "schemaSha256": "d10c9f4656e1bd5bc6727e9b35080e017dc167154726fca93da33c7a6bd1c4f3",
+      "configSha256": "d86dec46ba7ac2ac0e5e978777a47414e96790f93b2c1f5017ababc4e255344e",
+      "errors": []
+    },
+    {
+      "file": "render.yaml",
+      "status": "PASS",
+      "schema": "https://render.com/schema/render.yaml.json",
+      "schemaSha256": "8a3fb8da6b4f55fe686fbefa790e011d3dd7895f013f355953c572a21ab6494a",
+      "configSha256": "2b0f43a9cb5ecfad0faf5dc88e54d923fd4fd9959a236b77d4b57ae8a93e5868",
+      "errors": []
+    },
+    {
+      "file": "frontend/vercel.json",
+      "status": "PASS",
+      "schema": "https://openapi.vercel.sh/vercel.json",
+      "schemaSha256": "7a8bbf15e5fc35062f7f247dc4b707e40896bbc62b806a921833c90d71fcbca8",
+      "configSha256": "c16307e45a9a9201e956a26c50db0a047fdeab51f8291f03553cc81050746155",
+      "errors": []
+    }
+  ],
+  "releaseInvariants": "PASS"
+}

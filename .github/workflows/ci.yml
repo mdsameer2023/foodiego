@@ -1,0 +1,75 @@
+name: FoodieGo quality checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: 'true'
+      FOODIEGO_E2E_ISOLATED: '1'
+      MONGOMS_VERSION: '7.0.14'
+      NEXT_PUBLIC_API_URL: http://localhost:5000/api
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      GEMINI_LIVE_TEST: '0'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Install backend
+        run: npm ci
+        working-directory: backend
+      - name: Install frontend
+        run: npm ci
+        working-directory: frontend
+      - name: Backend static checks and integration tests
+        run: |
+          npm run typecheck
+          npm run lint
+          npm test
+          npm run build
+        working-directory: backend
+      - name: Frontend static checks, unit tests and build
+        run: |
+          npx next typegen
+          npm run typecheck
+          npm run lint
+          npm test
+          npm run build
+        working-directory: frontend
+      - name: Dependency audits
+        run: |
+          npm audit --audit-level=high --prefix backend
+          npm audit --audit-level=high --prefix frontend
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Browser regression against temporary database
+        run: npm run test:e2e
+        working-directory: frontend
+      - name: Preserve browser evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-evidence
+          path: |
+            frontend/test-results/
+            frontend/playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+      # Deployment is deliberately a separate human-approved operation.

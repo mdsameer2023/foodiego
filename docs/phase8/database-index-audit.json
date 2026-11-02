@@ -1,0 +1,102 @@
+{
+  "measuredAt": "2026-10-31T09:54:32.904Z",
+  "connection": "PASS",
+  "scope": "Read-only listIndexes audit of configured foodiego database; no migration, createCollection or data writes",
+  "results": [
+    {
+      "model": "Address",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "AiUsage",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "AuditLog",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "Cart",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "Coupon",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "DeliveryAssignment",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "DeliveryPartner",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "Favorite",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "MenuCategory",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "MenuItem",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "Order",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "PasswordReset",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "Payment",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "RefreshSession",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "Refund",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "Restaurant",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "Review",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "User",
+      "status": "PASS",
+      "missing": 0
+    },
+    {
+      "model": "WebhookEvent",
+      "status": "PASS",
+      "missing": 0
+    }
+  ]
+}

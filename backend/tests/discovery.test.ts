@@ -1,0 +1,93 @@
+import assert from 'node:assert/strict';
+import { after, before, test } from 'node:test';
+import supertest from 'supertest';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { createApp } from '../src/app.js';
+import { connectDatabase, disconnectDatabase } from '../src/config/database.js';
+import type { Env } from '../src/config/env.js';
+import { Restaurant } from '../src/models/Restaurant.js';
+import { MenuCategory } from '../src/models/MenuCategory.js';
+import { MenuItem } from '../src/models/MenuItem.js';
+
+const env:Env={NODE_ENV:'test',PORT:5000,MONGODB_URI:'',JWT_ACCESS_SECRET:'access-test-secret-longer-than-thirty-two-chars',JWT_REFRESH_SECRET:'refresh-test-secret-longer-than-thirty-two-chars',FRONTEND_URL:'http://localhost:3000',BACKEND_URL:'http://localhost:5000',EMAIL_MODE:'console',TRACKING_MIN_INTERVAL_MS:5000,TRACKING_MIN_DISTANCE_METERS:30,TRACKING_STATIONARY_INTERVAL_MS:30000};
+let mongo:MongoMemoryServer;
+const app=createApp(env);
+let firstId:string;
+let secondId:string;
+before(async()=>{
+  mongo=await MongoMemoryServer.create({instance:{launchTimeout:60000}});
+  await connectDatabase(mongo.getUri(),'foodiego_discovery_test');
+  const first=await Restaurant.create({name:'Spice Garden',description:'Indian dishes',cuisines:['North Indian'],address:'Park Street',city:'Kolkata',area:'Park Street',location:{type:'Point',coordinates:[88.3639,22.5726]},priceForTwo:450,rating:4.7,averageDeliveryTime:25,isApproved:true,isOpen:true,hasVegetarianOptions:true,isPureVegetarian:true,offer:'20% OFF'});
+  const second=await Restaurant.create({name:'Quick Noodles',description:'Chinese food',cuisines:['Chinese'],address:'Salt Lake',city:'Kolkata',area:'Salt Lake',priceForTwo:650,rating:4.1,averageDeliveryTime:40,isApproved:true,isOpen:false});
+  firstId=String(first._id);secondId=String(second._id);
+  const category=await MenuCategory.create({restaurantId:first._id,name:'Popular',sortOrder:0});
+  await MenuItem.create({restaurantId:first._id,categoryId:category._id,name:'Paneer Tikka',description:'Spiced paneer',price:180,isVegetarian:true,isPopular:true});
+});
+after(async()=>{await disconnectDatabase();await mongo?.stop();});
+async function signedIn(email:string) {
+  const client=supertest.agent(app);
+  const csrf=await client.get('/api/auth/csrf').expect(200);
+  const token=csrf.body.data.csrfToken as string;
+  await client.post('/api/auth/register').set('X-CSRF-Token',token).send({name:'Test Foodie',email,password:'GoodPassword123'}).expect(201);
+  return {client,token};
+}
+test('listing combines partial search, filters, deterministic sorting and pagination',async()=>{
+  const request=supertest(app);
+  const filtered=await request.get('/api/restaurants?search=paneer&city=Kolkata&cuisine=North%20Indian&ratingMin=4.5&priceMax=500&deliveryMax=30&pureVegetarian=true&offers=true&openNow=true').expect(200);
+  assert.equal(filtered.body.meta.total,1);
+  assert.equal(filtered.body.data[0].name,'Spice Garden');
+  const sorted=await request.get('/api/restaurants?sort=priceDesc&limit=1&page=1').expect(200);
+  assert.equal(sorted.body.meta.pages,2);
+  assert.equal(sorted.body.data[0].name,'Quick Noodles');
+  assert.equal((await request.get('/api/restaurants?sort=name&limit=1&page=2').expect(200)).body.data[0].name,'Spice Garden');
+  assert.equal((await request.get('/api/restaurants?city=Delhi').expect(200)).body.meta.total,0);
+  assert.equal((await request.get('/api/restaurants?lat=22.5726&lng=88.3639&radiusKm=2').expect(200)).body.meta.total,1);
+  assert.equal((await request.get('/api/restaurants/cuisines').expect(200)).body.data.length,2);
+});
+test('restaurant detail, suggestions, global food search and menu filters',async()=>{
+  const request=supertest(app);
+  assert.equal((await request.get(`/api/restaurants/${firstId}`).expect(200)).body.data.name,'Spice Garden');
+  await request.get('/api/restaurants/not-a-restaurant').expect(404);
+  const suggestions=await request.get('/api/restaurants/search?q=spice').expect(200);
+  assert.equal(suggestions.body.data.restaurants[0].name,'Spice Garden');
+  const food=await request.get('/api/menu-items/search?q=paneer').expect(200);
+  assert.equal(food.body.data[0].name,'Paneer Tikka');
+  const categories=await request.get(`/api/restaurants/${firstId}/menu/categories`).expect(200);
+  const items=await request.get(`/api/restaurants/${firstId}/menu/items?category=${categories.body.data[0].id}&vegetarian=true&popular=true&sort=price`).expect(200);
+  assert.equal(items.body.meta.total,1);
+  assert.equal(items.body.data[0].name,'Paneer Tikka');
+  assert.equal((await request.get(`/api/restaurants/${firstId}/menu/items?vegetarian=false`).expect(200)).body.meta.total,0);
+  await request.get(`/api/restaurants/${firstId}/menu/items?category=missing`).expect(404);
+});
+test('favorites require auth, persist, reject invalid restaurants and stay private',async()=>{
+  const request=supertest(app);
+  await request.get('/api/users/favorites').expect(401);
+  const one=await signedIn('fav-one@example.com');
+  const two=await signedIn('fav-two@example.com');
+  await one.client.post('/api/users/favorites').set('X-CSRF-Token',one.token).send({restaurantId:firstId}).expect(201);
+  await one.client.post('/api/users/favorites').set('X-CSRF-Token',one.token).send({restaurantId:firstId}).expect(201);
+  assert.equal((await one.client.get('/api/users/favorites').expect(200)).body.data.length,1);
+  const anotherDevice=supertest.agent(app);
+  const secondCsrf=(await anotherDevice.get('/api/auth/csrf').expect(200)).body.data.csrfToken as string;
+  await anotherDevice.post('/api/auth/login').set('X-CSRF-Token',secondCsrf).send({email:'fav-one@example.com',password:'GoodPassword123'}).expect(200);
+  assert.equal((await anotherDevice.get('/api/users/favorites').expect(200)).body.data.length,1);
+  assert.equal((await two.client.get('/api/users/favorites').expect(200)).body.data.length,0);
+  await one.client.post('/api/users/favorites').set('X-CSRF-Token',one.token).send({restaurantId:'missing'}).expect(404);
+  await one.client.delete(`/api/users/favorites/${firstId}`).set('X-CSRF-Token',one.token).expect(204);
+  assert.equal((await one.client.get('/api/users/favorites').expect(200)).body.data.length,0);
+});
+test('review submission, edit/delete ownership, average rating and validation',async()=>{
+  const one=await signedIn('review-one@example.com');
+  const two=await signedIn('review-two@example.com');
+  const created=await one.client.post(`/api/restaurants/${secondId}/reviews`).set('X-CSRF-Token',one.token).send({rating:5,comment:'Great food'}).expect(201);
+  const id=created.body.data.id as string;
+  await one.client.post(`/api/restaurants/${secondId}/reviews`).set('X-CSRF-Token',one.token).send({rating:5,comment:'Again'}).expect(409);
+  await two.client.patch(`/api/reviews/${id}`).set('X-CSRF-Token',two.token).send({rating:1}).expect(403);
+  await two.client.delete(`/api/reviews/${id}`).set('X-CSRF-Token',two.token).expect(403);
+  await one.client.patch(`/api/reviews/${id}`).set('X-CSRF-Token',one.token).send({rating:4}).expect(200);
+  assert.equal((await Restaurant.findById(secondId))?.rating,4);
+  assert.equal((await supertest(app).get(`/api/restaurants/${secondId}/reviews`).expect(200)).body.meta.total,1);
+  await one.client.delete(`/api/reviews/${id}`).set('X-CSRF-Token',one.token).expect(204);
+  assert.equal((await Restaurant.findById(secondId))?.reviewCount,0);
+  await one.client.post(`/api/restaurants/${secondId}/reviews`).set('X-CSRF-Token',one.token).send({rating:6,comment:'Invalid'}).expect(400);
+});
